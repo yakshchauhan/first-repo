@@ -1,0 +1,163 @@
+import { useEffect, useRef } from "react";
+
+/**
+
+Animated "Noto Nature"-style landing page
+
+Pure React + TailwindCSS (no external art; all vectors authored below)
+
+
+Parallax on mouse move
+
+
+Seamless looping birds/clouds animations
+
+
+Responsive hero with navbar
+
+
+How to use in a Vite + React + Tailwind project:
+
+1. Replace your App.tsx with this file's contents
+
+
+
+2. Ensure Tailwind is configured (https://tailwindcss.com/docs/guides/vite)
+
+
+
+3. Run: npm run dev */
+
+
+
+
+export default function App() { const sceneRef = useRef<HTMLDivElement>(null);
+
+// Mouse parallax for depth useEffect(() => { const root = sceneRef.current; if (!root) return; const layers = Array.from(root.querySelectorAll<HTMLElement>("[data-depth]"));
+
+const onMove = (e: MouseEvent) => {
+  const { innerWidth: w, innerHeight: h } = window;
+  const x = (e.clientX - w / 2) / (w / 2);
+  const y = (e.clientY - h / 2) / (h / 2);
+  layers.forEach((layer) => {
+    const d = Number(layer.dataset.depth || 0);
+    layer.style.transform = `translate3d(${x * d * 14}px, ${y * d * 10}px, 0)`;
+  });
+};
+window.addEventListener("mousemove", onMove);
+return () => window.removeEventListener("mousemove", onMove);
+
+}, []);
+
+return ( <div className="min-h-screen w-full overflow-hidden bg-[#0b0f2a] text-white"> {/* NAVBAR */} <header className="absolute inset-x-0 top-0 z-40"> <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6"> <div className="text-lg font-semibold tracking-wide opacity-90">Notosan</div> <ul className="hidden gap-8 md:flex"> {['Community','About','Support','Contact'].map((i)=> ( <li key={i} className="opacity-80 transition hover:opacity-100 cursor-pointer">{i}</li> ))} </ul> <button className="hidden rounded-2xl border border-white/30 px-5 py-2 text-sm backdrop-blur-md transition hover:bg-white/10 md:inline-flex">Register</button> </nav> </header>
+
+{/* HERO SCENE */}
+  <main className="relative h-[100svh] w-full">
+    {/* Sky gradient */}
+    <div className="absolute inset-0 bg-gradient-to-tr from-[#14183f] via-[#3b2f7b] to-[#ff8c4b]"/>
+
+    {/* Stars / particles */}
+    <Particles />
+
+    {/* Parallax container */}
+    <div ref={sceneRef} className="pointer-events-none absolute inset-0">
+      {/* Far clouds */}
+      <div data-depth="0.25" className="absolute inset-x-0 top-[18%] z-0 opacity-50">
+        <Clouds speed="slow"/>
+      </div>
+      {/* Near clouds */}
+      <div data-depth="0.45" className="absolute inset-x-0 top-[28%] z-0 opacity-60">
+        <Clouds speed="fast"/>
+      </div>
+    </div>
+
+    {/* Mountains + lake */}
+    <div className="absolute inset-0 z-10">
+      <Landscape />
+    </div>
+
+    {/* Birds layer */}
+    <div className="absolute inset-0 z-20">
+      <Birds rows={3} perRow={7} />
+    </div>
+
+    {/* Traveler character (original simple vector) */}
+    <div className="absolute bottom-10 right-8 z-30 w-[220px] md:w-[260px] lg:w-[300px] drop-shadow-[0_20px_40px_rgba(0,0,0,0.55)]">
+      <Traveler />
+    </div>
+
+    {/* CTA (kept simple; remove if you need zero text) */}
+    <div className="absolute bottom-16 left-1/2 z-30 -translate-x-1/2">
+      <a href="#journey" className="rounded-xl bg-white/20 px-6 py-3 text-sm backdrop-blur-md transition hover:bg-white/30">Start the journey</a>
+    </div>
+  </main>
+
+  {/* Credits footer (optional) */}
+  <footer className="relative z-30 mx-auto max-w-7xl px-6 py-6 text-white/70">
+    <p className="text-xs">Demo inspired by an illustrated travel landing concept. All vectors are original in this code.</p>
+  </footer>
+
+  {/* Inline styles for keyframes */}
+  <style>{`
+    @keyframes cloudMoveFast { from { transform: translateX(-20%); } to { transform: translateX(20%); } }
+    @keyframes cloudMoveSlow { from { transform: translateX(10%); } to { transform: translateX(-10%); } }
+    @keyframes birdFlight { 0% { transform: translateX(-10vw) translateY(0) } 50% { transform: translateX(110vw) translateY(-2vh) } 100% { transform: translateX(-10vw) translateY(0) } }
+  `}</style>
+</div>
+
+); }
+
+/* -------------------- Decorative Components -------------------- */
+
+function Particles() { return ( <div className="absolute inset-0 mix-blend-screen opacity-30"> {Array.from({ length: 100 }).map((_, i) => ( <span key={i} className="absolute rounded-full bg-white" style={{ width: Math.random() * 2 + 1 + "px", height: Math.random() * 2 + 1 + "px", top: Math.random() * 100 + "%", left: Math.random() * 100 + "%", opacity: Math.random() * 0.6 + 0.2, }} /> ))} </div> ); }
+
+function Clouds({ speed }: { speed: "slow" | "fast" }) { const isFast = speed === "fast"; return ( <svg viewBox="0 0 1600 400" className={h-[220px] w-[1600px] ${isFast ? 'animate-[cloudMoveFast_30s_linear_infinite_alternate]' : 'animate-[cloudMoveSlow_55s_linear_infinite_alternate]'}}> <defs> <linearGradient id="cloudG" x1="0" y1="0" x2="0" y2="1"> <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9"/> <stop offset="100%" stopColor="#c9d0ff" stopOpacity="0.6"/> </linearGradient> </defs> {Array.from({ length: 6 }).map((_, i) => ( <ellipse key={i} cx={200 + i * 250} cy={120 + (i % 2) * 40} rx={140} ry={50} fill="url(#cloudG)" /> ))} </svg> ); }
+
+function Landscape() { return ( <svg viewBox="0 0 1600 900" className="h-full w-full" preserveAspectRatio="xMidYMid slice"> <defs> <linearGradient id="mtnWarm" x1="0" y1="0" x2="1" y2="1"> <stop offset="0%" stopColor="#ffd18a"/> <stop offset="35%" stopColor="#ff9868"/> <stop offset="100%" stopColor="#6b49c6"/> </linearGradient> <linearGradient id="mtnCool" x1="0" y1="0" x2="1" y2="1"> <stop offset="0%" stopColor="#4a40a0"/> <stop offset="100%" stopColor="#2a2d6a"/> </linearGradient> <linearGradient id="waterG" x1="0" y1="0" x2="1" y2="1"> <stop offset="0%" stopColor="#2b2f7a"/> <stop offset="100%" stopColor="#5a6bff"/> </linearGradient> </defs>
+
+{/* big warm mountain */}
+  <path d="M0 540 L400 420 L760 200 L1120 420 L1600 540 L1600 900 L0 900 Z" fill="url(#mtnWarm)" opacity="0.9"/>
+  {/* cool foothills */}
+  <path d="M0 600 C300 520, 600 620, 900 560 C1200 500, 1400 600, 1600 520 L1600 900 L0 900 Z" fill="url(#mtnCool)" opacity="0.95"/>
+
+  {/* lake */}
+  <rect x="0" y="720" width="1600" height="180" fill="url(#waterG)"/>
+  <ellipse cx="220" cy="790" rx="60" ry="22" fill="#6a74ff" opacity="0.6"/>
+  <ellipse cx="520" cy="835" rx="80" ry="28" fill="#6a74ff" opacity="0.5"/>
+  <ellipse cx="970" cy="800" rx="70" ry="24" fill="#6a74ff" opacity="0.55"/>
+
+  {/* foreground grass */}
+  <path d="M0 860 C200 820, 420 880, 620 860 C860 840, 1080 900, 1600 870 L1600 900 L0 900 Z" fill="#18224e"/>
+</svg>
+
+); }
+
+function Birds({ rows = 3, perRow = 6 }: { rows?: number; perRow?: number }) { const groups = Array.from({ length: rows }); return ( <div className="absolute inset-0"> {groups.map((_, r) => ( <div key={r} className="absolute left-0 right-0" style={{ top: ${20 + r * 10}% }}> {Array.from({ length: perRow }).map((__, i) => ( <svg key={i} viewBox="0 0 60 20" className="absolute h-4 w-12 opacity-90" style={{ top: ${Math.random() * 6 - 3}%, left: ${-10 - i * 18}vw, animation: birdFlight ${12 + r * 2 + (i % 3)}s linear infinite, animationDelay: ${-i * 1.5 - r * 0.7}s, }} > {/* simple bird (two wings) */} <path d="M2 10 Q16 2 30 10" stroke="#fff" strokeWidth="2.2" fill="none" strokeLinecap="round"/> <path d="M30 10 Q44 2 58 10" stroke="#fff" strokeWidth="2.2" fill="none" strokeLinecap="round"/> </svg> ))} </div> ))} </div> ); }
+
+function Traveler() { return ( <svg viewBox="0 0 300 320" className="w-full h-auto"> <defs> <linearGradient id="cloakG" x1="0" y1="0" x2="1" y2="1"> <stop offset="0%" stopColor="#ff7b4b"/> <stop offset="100%" stopColor="#d63d30"/> </linearGradient> <linearGradient id="hatG" x1="0" y1="0" x2="1" y2="1"> <stop offset="0%" stopColor="#f1c45b"/> <stop offset="100%" stopColor="#a3751a"/> </linearGradient> </defs>
+
+{/* body shadow */}
+  <ellipse cx="160" cy="300" rx="80" ry="20" fill="#000" opacity="0.35"/>
+
+  {/* cloak */}
+  <path d="M70 180 C60 240, 120 290, 200 300 C260 300, 250 250, 230 220 C210 190, 170 160, 140 160 C110 160, 80 160, 70 180 Z" fill="url(#cloakG)"/>
+  {/* sash */}
+  <path d="M95 200 C130 210, 170 210, 205 205" stroke="#ffa54a" strokeWidth="12" strokeLinecap="round"/>
+
+  {/* backpack */}
+  <ellipse cx="115" cy="190" rx="36" ry="46" fill="#2b2e4d"/>
+
+  {/* scarf */}
+  <path d="M150 170 C180 170, 210 160, 230 150 C210 170, 190 185, 170 190" fill="#ff7e3d"/>
+  <path d="M230 150 C250 160, 260 170, 270 190 C250 185, 235 175, 225 165 Z" fill="#ff7e3d"/>
+
+  {/* head */}
+  <circle cx="140" cy="150" r="26" fill="#2b2e4d"/>
+
+  {/* hat */}
+  <ellipse cx="140" cy="140" rx="80" ry="20" fill="#8a6b1c"/>
+  <path d="M90 140 C120 90, 170 90, 200 140" fill="url(#hatG)"/>
+</svg>
+
+); }
+
